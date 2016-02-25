@@ -28,14 +28,16 @@ def generate_html(handle, classifier, dir_path):
         context = {
             'names': classifier.problem_list,
             'links': classifier.problem_link,
+            'sorted_category': classifier.get_sorted_category(),
             'category': classifier.problem_tags,
             'submission': classifier.submission_link,
             'local': classifier.local_path_link,
-            'index': classifier.problem_index,
+            'index': classifier.problem_id,
             'submission_count': len(classifier.problem_list),
             'handle': handle,
             'handle_link': urlgen.generate_profile_url(handle),
-            'category_counter': classifier.category_count
+            'category_counter': classifier.category_count,
+            'category_total_counter': classifier.category_total_count
         }
 
         # writes the html file to classified-problems.html
@@ -49,8 +51,6 @@ def generate_html(handle, classifier, dir_path):
 
     except UnicodeEncodeError as ex:
         print ex.message
-    except OSError as ex:
+    except (OSError, IOError) as ex:
         print ex.strerror
-    except IOError as ex:
-        print ex.message
 

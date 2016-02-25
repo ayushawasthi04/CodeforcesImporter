@@ -9,8 +9,9 @@
 </head>
 
 <body>
+
     <div id="mainContent">
-        <div id="title">
+        <div id="title" class="header">
             <span>SUBMISSION CLASSIFIER</span>
             <span>
                 Handle:  <a class="handleLink" target="_blank" href="{{ handle_link }}"> {{ handle }} </a>
@@ -19,11 +20,18 @@
         <div class="tagDiv details">
             <span>Total-Submissions: {{ submission_count }}</span>
                 {% set counter = 0 -%}
-                {% for tag in category -%}
+                {% for tag in sorted_category -%}
                     <div class="detailsRow">
                         <div style="float: left; width: 50px; height: 10px"></div>
-                        <span class="sh1">   {{ tag.upper() }}  </span>
-                        <span class="sh2"> : &nbsp; {{  category_counter[tag] }}</span>
+                        <span class="sh1">  <a target="_blank" href="http://codeforces.com/problemset/tags/{{ tag }}"> {{ tag.upper() }} </a>  </span>
+                        <span class="sh2" tagName="{{ tag.replace(' ', '_') }}"> : &nbsp; {{  category_counter[tag] }} out of {{  category_total_counter[tag] }}</span>
+                        <span class="sh3">
+                            <div class="myProgress">
+                                <div class="myBar" style="width: {{ ((category_counter[tag] * 100.0) / category_total_counter[tag]) }}%">
+
+                                </div>
+                            </div>
+                        </span>
                         <div style="float: right; width: 50px; height: 10px"></div>
                     </div>
                 {% set counter = counter + 1 -%}
@@ -32,31 +40,99 @@
     </div>
 
     {% set counter = 0 -%}
-    {% for tag in category -%}
+    {% for tag in sorted_category -%}
 
         <div class="tagDiv">
-            <div class="header">
+            <div class="header" id="{{ tag.replace(' ', '_') }}">
                 {{ tag.upper() }}
             </div>
-                <div class="problemDiv">
-                    <span class="ch1">Problem</span>
-                    <span class="ch2">Problem-Name</span>
-                    <span class="ch3">Submission-Link</span>
-                    <span class="ch4">Local-Link</span>
-                </div>
-                {% set counter = 0 -%}
-                {% for name in category[tag] -%}
-                        <div class="problemDiv">
-                                   <a class="ch1" target="_blank" href="{{ links[name] }} "> {{ index[name] }} </a>
-                                   <a class="ch2" target="_blank" href="{{ links[name] }} "> {{ name }} </a>
-                                   <a class="ch3" target="_blank" href="{{ submission[name] }}"> Submission-link </a>
-                                   <a class="ch4" target="_blank" href="{{ local[name] }}"> Local-link </a>
-                        </div>
-                    {% set counter = counter + 1 -%}
-                {% endfor -%}
+            <div class="problemDiv">
+                <span class="ch1">Problem</span>
+                <span class="ch2">Problem-Name</span>
+                <span class="ch3">Submission-Link</span>
+                <span class="ch4">Local-Link</span>
             </div>
-        <br>
+            {% set counter = 0 -%}
+            {% for name in category[tag] -%}
+                    <div class="problemDiv">
+                               <a class="ch1" target="_blank" href="{{ links[name] }} "> {{ index[name] }} </a>
+                               <a class="ch2" target="_blank" href="{{ links[name] }} "> {{ name }} </a>
+                               <a class="ch3" target="_blank" href="{{ submission[name] }}"> Submission-link </a>
+                               <a class="ch4" target="_blank" href="{{ local[name] }}"> Local-link </a>
+                    </div>
+                {% set counter = counter + 1 -%}
+            {% endfor -%}
+        </div>
+
     {% set counter = counter + 1 -%}
     {% endfor -%}
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script>
+        var stickyHeaders = (function () {
+            var $stickies, $offset;
+            var load = function (stickies, target, offset) {
+                $offset = offset || 0;
+                if (typeof stickies === "object" && stickies instanceof jQuery && stickies.length > 0) {
+                    $stickies = stickies.each(function () {
+                        var $thisSticky = $(this);
+                        $thisSticky
+                                .data('originalPosition', $thisSticky.offset().top)
+                                .data('originalHeight', $thisSticky.outerHeight());
+                    });
+                    target.off("scroll.stickies").on("scroll.stickies", function (event) {
+                        _whenScrolling(event);
+                    });
+                }
+            };
+
+            var _whenScrolling = function (event) {
+                var $scrollTop = $(event.currentTarget).scrollTop() + 0;//$offset;
+                $stickies.each(function (i) {
+                    var $thisSticky = $(this),
+                            $stickyPosition = $thisSticky.data('originalPosition'),
+                            $newPosition,
+                            $nextSticky;
+                    if ($stickyPosition <= $scrollTop) {
+                        $newPosition = Math.max(0, $scrollTop - $stickyPosition);
+                        $nextSticky = $stickies.eq(i + 1);
+                        if ($nextSticky.length > 0) {
+                            $newPosition = Math.min($newPosition, ($nextSticky.data('originalPosition') - $stickyPosition) - $thisSticky.data('originalHeight'));
+                        }
+                    } else {
+                        $newPosition = 0;
+                    }
+                    $thisSticky.css('transform', 'translateY(' + $newPosition + 'px)');
+                    //could just as easily use top instead of transform
+                    //$thisSticky.css('top', $newPosition + 'px');
+                });
+            };
+
+            return {
+                load: load
+            };
+        })();
+
+
+        /*$(function () {
+            stickyHeaders.load($(".header"), $(window), 0);
+        });*/
+        $(window).bind("load", function() {
+            $.fn.scrollView = function () {
+                return this.each(function () {
+                    $('html, body').animate({
+                        scrollTop: $(this).offset().top
+                    }, 1000);
+                });
+            };
+
+            $('.sh2').on('click', function() {
+                //alert('clicked' + $(this).attr('tagName'));
+                $('#' + $(this).attr('tagName')).scrollView();
+            });
+           stickyHeaders.load($(".header"), $(window), 0);
+        });
+
+    </script>
 </body>
 </html>
